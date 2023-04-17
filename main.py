@@ -4,6 +4,7 @@ from tkinter import messagebox,ttk
 
 # stop horloge
 stop = False 
+local = True
 def stopHorloge():
     global stop
     
@@ -27,90 +28,103 @@ def changeFormat():
         am_pm = False
     
     return am_pm
-
-# gestion des alarmes
-def alarme():
-    
-    def enregistreAlarme():
-        # recuperation des donnée du formulaire
-        h = heur.get()
-        min = minutes.get()
-        sec = secondes.get()
+def enregistreAlarme():
+    # recuperation des donnée du formulaire
+    h = entry_heur.get()
+    min = entry_minutes.get()
+    sec = entry_secondes.get()
         
-        try:
-            h = int(h)
-            min = int(min)
-            sec = int(sec)
-        except Exception:
-            messagebox.showerror("Error","impossible d'avoir des heurs de cette format")
+    try:
+        h = int(h)
+        min = int(min)
+        sec = int(sec)
+    except Exception:
+        messagebox.showerror("Error","impossible d'avoir des heurs de cette format")
             
-        if((h >=24 or h < 0) or (min >=60 or min < 0) or (sec >= 60 or sec < 0)):
-            messagebox.showerror("Erorr","merci de bien vouloire rensseigner des valeur d'heur et/ou de minutes et/ou de seconde valide")
+    if((h >=24 or h < 0) or (min >=60 or min < 0) or (sec >= 60 or sec < 0)):
+        messagebox.showerror("Erorr","merci de bien vouloire rensseigner des valeur d'heur et/ou de minutes et/ou de seconde valide")
+    else:
+        try:
+            with open("enregistreAlarme.json","r") as dataAlaram:
+                data = json.load(dataAlaram)
+        except:
+            fichier = open("enregistreAlarme.json","w")
+            data = []
+            fichier.write(json.dumps(data))
+            fichier.close()
+        # verification de l'existance de l'alarme dans le fichier json
+        exist = False 
+        if data != []:
+            for i in data:
+                if(h == i["heur"] and min == i["minute"] and sec ==i["seconde"]):
+                    exist = True
+        if exist :
+            messagebox.showerror("Error","cette alarme est dejà en registrez")
         else:
-            try:
-                with open("enregistreAlarme.json","r") as dataAlaram:
-                    data = json.load(dataAlaram)
-            except:
-                fichier = open("enregistreAlarme.json","w")
-                data = []
-                fichier.write(json.dumps(data))
-                fichier.close()
-            # verification de l'existance de l'alarme dans le fichier json
-            exist = False 
-            if data != []:
-                for i in data:
-                    if(h == i["heur"] and min == i["minute"] and sec ==i["seconde"]):
-                        exist = True
-            if exist :
-                messagebox.showerror("Error","cette alarme est dejà en registrez")
-            else:
-                obj = {
-                    "heur":h,
-                    "minute":min,
-                    "seconde":sec
-                }
-                data.append(obj)
-                fichier = open("enregistreAlarme.json","w")
-                fichier.write(json.dumps(data,indent=True))
-                fichier.close()
-                messagebox.showinfo("Success","l'Alarme a bien été enregistrez")
-                fenetreAlarme.destroy()
+            obj = {
+                "heur":h,
+                "minute":min,
+                "seconde":sec
+            }
+            data.append(obj)
+            fichier = open("enregistreAlarme.json","w")
+            fichier.write(json.dumps(data,indent=True))
+            fichier.close()
+            messagebox.showinfo("Success","l'Alarme a bien été enregistrez")
+            block.destroy()
+def Regle_heur():
     
-    #fenetre Alarme
-    fenetreAlarme = tk.Tk()
-    fenetreAlarme.title("Regler Heur")
-    fenetreAlarme.config(bg="#cdebff")
-    fenetreAlarme.geometry("300x150")
+    global local,heur,minute,seconde
     
-    block = tk.Frame(fenetreAlarme,bg="#cdebff")
-    block.place(x=25,y=50,width=270,height=100)
+    h = entry_heur.get()
+    min = entry_minutes.get()
+    sec = entry_secondes.get()
+      
+    try:
+        h = int(h)
+        min = int(min)
+        sec = int(sec)
+    except Exception:
+        messagebox.showerror("Error","impossible d'avoir des heurs de cette format")
+            
+    if((h >=24 or h < 0) or (min >=60 or min < 0) or (sec >= 60 or sec < 0)):
+        messagebox.showerror("Erorr","merci de bien vouloire rensseigner des valeur d'heur et/ou de minutes et/ou de seconde valide")
+    else:
+        heur = h
+        minute = min
+        seconde = sec
+        local = False
+# gestion des alarmes
+
+def alarme():
+    global block,entry_heur,entry_minutes,entry_secondes
     
-    tab = []
-    for i in range(0,60):
-        tab.append(i)
+    block = tk.Frame(fenetre,bg="#cdebff")
+    block.place(x=25,y=250,width=340,height=130)
     
-    heur = ttk.Combobox(block,font=('calibrie',12))
-    heur.place(x=40,y=10,width=40,height=25)
-    heur["values"] = ("00","01","02","03","04","05","06","07","08","09","10","11","12","13","14","15","16","17","18","19","20","21","22","23")
+    lr_heur = tk.Label(block,fg="black",font=('calibrie',12),text="Hh",bg="#cdebff").place(x=10,y=40)
     
-    lr_heur = tk.Label(block,fg="black",font=('calibrie',12),text="Hh",bg="#cdebff").place(x=10,y=10)
+    entry_heur = ttk.Spinbox(block,from_=0,to=24,font=('calibrie',12))
+    entry_heur.place(x=40,y=40,width=50,height=25)
     
-    minutes = ttk.Combobox(block, font=("calibire",12))
-    minutes["values"] =tuple(tab)
-    minutes.place(x=130,y=10,width=40,height=25)
-    lr_minute = tk.Label(block,fg='black',font=("calibrie",12),text="Mm",bg="#cdebff").place(x=95,y=10)
     
-    secondes = ttk.Combobox(block, font=("calibrie",12))
-    secondes["values"] =tuple(tab)
-    secondes.place(x=225,y=10,width=40, height=25)
-    lr_seconde = tk.Label(block,fg="black",font=("calibrie",12),text="Sec",bg="#cdebff").place(x=185,y=10) 
+    entry_minutes = ttk.Spinbox(block,from_=0,to=59,font=("calibire",12))
+    entry_minutes.place(x=150,y=40,width=50,height=25)
+    lr_minute = tk.Label(block,fg='black',font=("calibrie",12),text="Mm",bg="#cdebff").place(x=110,y=40)
+    
+    lr_seconde = tk.Label(block,fg="black",font=("calibrie",12),text="Sec",bg="#cdebff").place(x=210,y=40) 
+    entry_secondes = ttk.Spinbox(block, from_=0,to=59,font=("calibrie",12))
+    entry_secondes.place(x=250,y=40,width=50, height=25)
     
     btn_reglage = tk.Button(block,text="OK",fg='black', command=enregistreAlarme)
-    btn_reglage.place(x=100,y=50)
-
-       
-#Actualiser Heur 
-def misAjourHeur():
+    btn_reglage.place(x=100,y=80,width=50)
+    
+    btn_reglage = tk.Button(block,text="Regler",fg='black', command=Regle_heur)
+    btn_reglage.place(x=170,y=80,width=50)
+    
+def heur_local():
+    
+    global tim,heur,minute,seconde
     
     tim = time.localtime()
     heur = tim.tm_hour
@@ -123,7 +137,33 @@ def misAjourHeur():
             heur -= 12
             label_am_pm.config(text="PM")
         else:
-            label_am_pm.config(text="AM")
+            label_am_pm.config(text="AM")    
+
+def regalge_heur():
+    global heur,minute,seconde
+    if(heur <=23):
+        if minute <= 59:
+            if seconde <=59:
+                seconde +=1
+            else:
+                seconde = 0
+                minute +=1
+        else:
+            minute = 0
+            heur += 1
+    else:
+        heur = 0
+        minute = 0
+        seconde = 0
+    
+
+#Actualiser Heur 
+def misAjourHeur():
+    
+    if(local):
+        heur_local()
+    else:
+        regalge_heur()
         
     label_heur.config(text=heur)
     label_minute.config(text=minute)
@@ -143,7 +183,7 @@ def misAjourHeur():
     if(stop):
         pass
     else:
-        div.after(100,misAjourHeur)
+        div.after(1000,misAjourHeur)
     
     
 
@@ -179,8 +219,8 @@ btn_stop = tk.Button(fenetre, text="Alarme", bg="#ff4e0f",fg="white",font=('cali
 btn_stop.place(x=450,y=20,width=130,height=30)
 
 # button de reglage
-# btn_regleHeur = tk.Button(fenetre, text="Reglage", bg="grey",fg="white",font=('calibrie',10,'bold'),command=reglageHeur)
-# btn_regleHeur.place(x=10,y=20,width=130,height=30)
+btn_regleHeur = tk.Button(fenetre, text="Reglage", bg="grey",fg="white",font=('calibrie',10,'bold'),command=alarme)
+btn_regleHeur.place(x=450,y=60,width=130,height=30)
 
 # format horloge
 formatTime = tk.Button(fenetre, text="AM - PM", bg="grey",fg="white",font=('calibrie',10,'bold'),command=changeFormat)
